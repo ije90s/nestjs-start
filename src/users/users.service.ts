@@ -2,16 +2,17 @@ import * as uuid from 'uuid';
 import {
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { EmailService } from 'src/email/email.service';
+import { AuthService } from 'src/auth/auth.service';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { UserInfo } from './UserInfo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UserEntity } from './entity/user.entity';
 import { ulid } from 'ulid';
-import { async } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,7 @@ export class UsersService {
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private dadtaSource: DataSource,
+    private authService: AuthService,
   ) {}
 
   async createUser(name: string, email: string, password: string) {
@@ -50,15 +52,49 @@ export class UsersService {
   }
 
   async verifyEmail(signupVerifyToken: string): Promise<string> {
-    throw new Error('Method not implemented');
+    const user = await this.userRepository.findOne({
+      where: { signupVerifyToken },
+    });
+
+    if (!user) {
+      throw new NotFoundException('유저가 존재하지 않습니다.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async login(email: string, password: string): Promise<string> {
-    throw new Error('Method not implemented');
+    const user = await this.userRepository.findOne({
+      where: { email, password },
+    });
+
+    if (!user) {
+      throw new NotFoundException('유저가 존재하지 않습니다.');
+    }
+
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   async getUserInfo(userId: string): Promise<UserInfo> {
-    throw new Error('Method not implemented');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('유저가 존재하지 않습니다.');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   private async checkUserExists(email: string) {
@@ -77,7 +113,7 @@ export class UsersService {
     user.name = name;
     user.email = email;
     user.password = password;
-    user.singupVerifyToken = signupVerifyToken;
+    user.signupVerifyToken = signupVerifyToken;
     await this.userRepository.save(user);
   }
 
@@ -99,7 +135,7 @@ export class UsersService {
       user.name = name;
       user.email = email;
       user.password = password;
-      user.singupVerifyToken = signupVerifyToken;
+      user.signupVerifyToken = signupVerifyToken;
       await queryRunner.manager.save(user);
 
       //throw new InternalServerErrorException();
@@ -128,7 +164,7 @@ export class UsersService {
       user.name = name;
       user.email = email;
       user.password = password;
-      user.singupVerifyToken = signupVerifyToken;
+      user.signupVerifyToken = signupVerifyToken;
 
       await manager.save(user);
 
