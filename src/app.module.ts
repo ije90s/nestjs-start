@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import emailConfig from './config/emailConfig';
 import { validationSchema } from './config/validationSchema';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ExceptionModule } from './exception/exception.module';
 import authConfig from './config/authConfig';
 
 @Module({
@@ -27,6 +28,7 @@ import authConfig from './config/authConfig';
       migrations: [__dirname + '/**/migrations/*.js'],
       migrationsTableName: 'migrations',
     }),
+    ExceptionModule,
   ],
   controllers: [],
   providers: [],
