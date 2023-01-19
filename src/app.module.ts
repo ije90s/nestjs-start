@@ -5,6 +5,7 @@ import emailConfig from './config/emailConfig';
 import { validationSchema } from './config/validationSchema';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExceptionModule } from './exception/exception.module';
+import { LoggingModule } from './logging/logging.module';
 import authConfig from './config/authConfig';
 
 @Module({
@@ -29,6 +30,7 @@ import authConfig from './config/authConfig';
       migrationsTableName: 'migrations',
     }),
     ExceptionModule,
+    LoggingModule,
   ],
   controllers: [],
   providers: [],
